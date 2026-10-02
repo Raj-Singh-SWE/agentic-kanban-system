@@ -1,0 +1,21 @@
+# Environments
+.env
+.env.*
+config.env
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Databases
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+productivity.db
+sql_app.db
+
+# OS
+.DS_Store
