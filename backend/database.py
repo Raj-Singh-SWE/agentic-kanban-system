@@ -1,12 +1,18 @@
+import os
 from pathlib import Path
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Resolve productivity.db relative to the workspace project root
-BASE_DIR = Path(__file__).resolve().parent.parent
-DB_FILE = BASE_DIR / "productivity.db"
+# If running on AWS Lambda (read-only file system), route the DB to /tmp
+if os.getenv("AWS_EXECUTION_ENV") or os.getenv("LAMBDA_TASK_ROOT"):
+    DB_FILE = Path("/tmp/productivity.db")
+else:
+    # Resolve productivity.db relative to the workspace project root locally
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    DB_FILE = BASE_DIR / "productivity.db"
 
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_FILE.as_posix()}"
+
 
 # check_same_thread=False is needed for FastAPI+SQLite concurrency.
 # timeout=15 helps prevent 'database is locked' errors during rapid clicks.

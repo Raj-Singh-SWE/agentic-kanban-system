@@ -48,3 +48,7 @@ def health_check():
             "docs": "/docs",
         },
     }
+
+# AWS Lambda Handler
+from mangum import Mangum
+handler = Mangum(app)
