@@ -1,9 +1,16 @@
 import streamlit as st
 import requests
+import os
+import streamlit as st
 
+# Dynamically fetch from Streamlit Secrets -> Environment Variable -> Fallback
+BACKEND_URL = st.secrets.get(
+    "BACKEND_URL", 
+    os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
+)
 # ── Config ───────────────────────────────────────────────────────────────────
-TASKS_API = "http://127.0.0.1:8000/tasks"
-AI_API    = "http://127.0.0.1:8000/ai/insights/"
+TASKS_API = f"{BACKEND_URL}/tasks"
+AI_API    = f"{BACKEND_URL}/ai/insights/"
 
 st.set_page_config(
     page_title="AI Productivity Dashboard",
