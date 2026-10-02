@@ -1,113 +1,81 @@
-🧠 AI-Powered Kanban Dashboard
+# AI-Powered Kanban System ⚡🧠
 
-An intelligent, modular productivity dashboard that combines a traditional Kanban workflow with Google Gemini AI. Instead of just tracking tasks, this application acts as an AI productivity coach—analyzing your pending work, calculating a "Discipline Score," detecting workflow bottlenecks, and automatically generating an optimized, time-blocked daily schedule.
+An intelligent, modular productivity dashboard that pairs a fast, lightweight backend with a sleek, dynamic Kanban board frontend. This application integrates Google's Gemini AI to analyze your workflow, warn you about bottlenecks, and dynamically generate an optimized daily schedule based on task priorities.
 
-✨ Key Features
+---
 
-Interactive Kanban Board: Clean, dark-mode UI with drag-and-drop style functionality to move tasks between "To Do", "In Progress", and "Done".
+## 🏗️ Architecture
 
-AI Discipline Hub: Real-time AI analysis of your current workload.
+The system is decoupled into two primary components communicating over REST:
 
-Smart Scheduling: Generates a time-blocked schedule based on task priorities and current status.
+### 1. Backend (FastAPI + SQLite)
+A highly performant, ASGI-compliant RESTful API built with **FastAPI**.
+- **Database (`backend/database.py`)**: Uses SQLAlchemy with SQLite (configured with WAL mode for concurrent writes and anti-locking resiliency).
+- **Models (`backend/models.py`)**: Pydantic schemas for data validation and SQLAlchemy ORM models.
+- **Task Router (`backend/routers/tasks.py`)**: Standard CRUD endpoints to manage Kanban tasks.
+- **AI Router & Engine (`backend/routers/ai.py` & `backend/services/ai_engine.py`)**: 
+  - Retrieves active tasks and sends them to the **Gemini 3.8 Flash** model via the `google-genai` SDK.
+  - Generates a JSON payload containing a `discipline_score`, `bottleneck_warning`, and an optimized `recommended_schedule`.
+  - **Fail-safe mechanism**: Incorporates regex JSON extraction and algorithmic fallback logic (calculates scores and schedules manually) in case the LLM API is rate-limited or fails.
 
-Bottleneck Detection: Identifies if too many tasks are stuck "In Progress" and provides actionable warnings.
+### 2. Frontend (Streamlit)
+A highly customized, reactive UI built in **Streamlit** (`frontend/app.py`).
+- **Custom CSS Design System**: Features a dark mode, glassmorphism UI, gradient text, and micro-animations to deliver a premium user experience.
+- **State Management**: Persists AI insights in `st.session_state` to prevent unnecessary and expensive re-fetching when interacting with the Kanban board.
+- **Error Handling**: Graceful fallback and API resiliency. If the backend drops, Streamlit cleanly surfaces the error without clearing state or infinite looping.
 
-Modular Architecture: Strictly separated FastAPI backend and Streamlit frontend for scalability and clean code management.
+---
 
-🛠️ Tech Stack
+## 🛠️ Technology Stack
 
-Frontend: Streamlit, Custom CSS
+- **Frontend**: Streamlit, HTML/CSS (Vanilla injects)
+- **Backend**: FastAPI, Uvicorn
+- **Database**: SQLite, SQLAlchemy
+- **AI Integration**: Google Gemini SDK (`google-genai`)
+- **Environment**: `python-dotenv`
+- **Docker**: Included for backend deployment
+- **Streamlit Community Cloud**: Ready for `.streamlit/config.toml` deployment
 
-Backend: FastAPI, Python
+---
 
-Database: SQLite, SQLAlchemy (ORM)
+## 🚀 Setup & Installation
 
-AI Integration: Google GenAI SDK (Gemini API)
+### 1. Clone the repository
+```bash
+git clone https://github.com/Raj-Singh-SWE/agentic-kanban-system.git
+cd agentic-kanban-system
+```
 
-Data Validation: Pydantic
-
-📂 Project Structure
-
-workspace/
-├── backend/
-│   ├── __init__.py
-│   ├── database.py          # SQLite setup and session management
-│   ├── models.py            # SQLAlchemy models & Pydantic schemas
-│   ├── main.py              # FastAPI app initialization & CORS
-│   ├── routers/
-│   │   ├── __init__.py
-│   │   ├── tasks.py         # CRUD API endpoints for tasks
-│   │   └── ai.py            # API endpoint for AI insights
-│   └── services/
-│       ├── __init__.py
-│       └── ai_engine.py     # Google Gemini prompt logic & fallback scoring
-├── frontend/
-│   └── app.py               # Streamlit UI, styling, and API integration
-├── requirements.txt         # Project dependencies
-├── .env.example             # Environment variable template
-└── README.md
-
-
-🚀 Installation & Setup
-
-1. Clone the repository
-
-git clone https://github.com/your-username/ai-kanban-dashboard.git
-cd ai-kanban-dashboard
-
-
-2. Set up the virtual environment
-
+### 2. Create a virtual environment & install dependencies
+```bash
 python -m venv venv
-# On Windows:
-.\venv\Scripts\Activate.ps1
-# On macOS/Linux:
-source venv/bin/activate
-
-
-3. Install dependencies
-
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
 pip install -r requirements.txt
+```
 
+### 3. Configure Environment Variables
+Create a file named `config.env` (or `.env`) in the root directory of the project and add your Gemini API Key:
+```env
+GEMINI_API_KEY=your_google_gemini_api_key_here
+```
 
-4. Configure Environment Variables
+### 4. Run the Backend
+In a new terminal window, start the FastAPI server:
+```bash
+uvicorn backend.main:app --reload --port 8000
+```
+*API documentation will be available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)*
 
-Create a .env file in the root directory and add your Google Gemini API Key:
+### 5. Run the Frontend
+In another terminal window, start the Streamlit application:
+```bash
+streamlit run frontend/app.py
+```
+*The dashboard will open automatically in your browser at [http://localhost:8501](http://localhost:8501)*
 
-GEMINI_API_KEY=your_gemini_api_key_here
+---
 
-
-5. Run the Application
-
-You will need to run the backend and frontend simultaneously in two separate terminal windows. Ensure both terminals are in the root workspace directory and the virtual environment is activated.
-
-Terminal 1 (Backend - FastAPI):
-
-python -m uvicorn backend.main:app --reload
-
-
-The backend API will run at http://127.0.0.1:8000
-View interactive API docs at http://127.0.0.1:8000/docs
-
-Terminal 2 (Frontend - Streamlit):
-
-python -m streamlit run frontend/app.py
-
-
-The UI will open in your browser at http://localhost:8501
-
-💡 How to Use
-
-Add Tasks: Use the left sidebar to add new tasks with a Title, Description, and Priority (High, Medium, Low).
-
-Manage Workflow: Click the action buttons on task cards to advance them from "To Do" ➡️ "In Progress" ➡️ "Done".
-
-Get AI Insights: Click the Generate AI Schedule & Insights button at the top of the dashboard. Gemini will analyze your current board and provide a dynamic discipline score and a suggested daily schedule to tackle the remaining items.
-
-🤝 Contributing
-
-Contributions are welcome! If you'd like to improve the UI, add user authentication, or swap out the AI models, feel free to fork the repository and submit a pull request.
-
-📜 License
-
-This project is open-source and available under the MIT License.
+## 💡 Usage Features
+- **Create Tasks**: Quickly add tasks with titles, descriptions, and High/Medium/Low priority via the sidebar.
+- **Kanban Flow**: Move tasks between `To Do`, `In Progress`, and `Done` using intuitive card buttons.
+- **AI Discipline Hub**: Click "Generate AI Schedule & Insights" to let Gemini act as your staff productivity coach. It will balance your schedule between 9 AM and 5 PM and warn you if you have too much work in progress.
